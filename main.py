@@ -1,16 +1,19 @@
-# This is a sample Python script.
+from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
 
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
+from config import Configuration
+from src.commands import get_handlers
 
 
-# Press the green button in the gutter to run the script.
+from src.tasks import birthday_notify
+
+
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    cfg = Configuration()
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    app = ApplicationBuilder().token(cfg.tg_token).build()
+    app.add_handlers(get_handlers())
+    jq = app.job_queue
+
+    job_daily = jq.run_repeating(birthday_notify, interval=86400, first=1)  # every day
+
+    app.run_polling()
