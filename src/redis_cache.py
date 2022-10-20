@@ -9,7 +9,7 @@ from src.entities import User
 
 class Cache:
     def __init__(self, url: str | None = None) -> None:
-        self.redis = aioredis.from_url(url or "redis://localhost:6379/1")
+        self.redis = aioredis.from_url(url, encoding="utf-8", decode_responses=True)
 
     async def dall_users(self) -> list[User]:
         keys = await self.keys()
@@ -34,7 +34,7 @@ class Cache:
         try:
             u = await self.redis.get(key)
             if u:
-                decoded_u = User(**json.loads(u.decode('utf-8')))
+                decoded_u = User(**json.loads(u))
                 return decoded_u
         except Exception as ex:
             logger.exception(ex)
@@ -44,4 +44,4 @@ class Cache:
 
     async def keys(self) -> list[tuple[int, int]]:
         keys = await self.redis.keys()
-        return [tuple(k.decode('utf-8').split('_')) for k in keys]
+        return [tuple(k.split('_')) for k in keys]

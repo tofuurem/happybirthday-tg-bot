@@ -7,4 +7,7 @@ from src.redis_cache import Cache
 class Container(containers.DeclarativeContainer):
     config: providers.Singleton[Configuration] = providers.Singleton(Configuration)
 
-    cache: providers.Factory[Cache] = providers.Factory(Cache, url=config().redis_url)
+    cache: providers.Factory[Cache] = providers.Factory(
+        Cache,
+        url=config().redis_url,
+    )
