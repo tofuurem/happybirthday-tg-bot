@@ -1,4 +1,4 @@
-version: "3.9"
+version: "3"
 services:
   bot:
     build:
@@ -22,5 +22,4 @@ services:
     expose:
       - 6379
     volumes:
-      - ./redis-data:/data
-      - redis.conf:/usr/local/etc/redis/redis.conf
+      - ./../redis-data:/data
