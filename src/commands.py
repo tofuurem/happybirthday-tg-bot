@@ -5,7 +5,10 @@ from typing import Any
 from telegram import Update
 from telegram.ext import ContextTypes, CommandHandler, CallbackContext
 
-from src import cache
+from dependency_injector.wiring import inject, Provide
+
+from container import Container
+from src.birthday_utils import create_birthday_message
 from src.entities import User
 
 
@@ -18,7 +21,12 @@ def _to_datetime(dt: str | None) -> date | None:
     return datetime.strptime(dt, fmt).date()
 
 
-async def _reg(update: Update, context: ContextTypes.DEFAULT_TYPE):
+@inject
+async def _reg(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    cache = Provide[Container.cache]
+) -> None:
     """
     Registration user with Optional argument for birthday
 
@@ -37,8 +45,17 @@ async def _reg(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # ToDo: заполнять недостающую информацию о пользователе
     key = (update.effective_user.id, update.effective_chat.id)
     user = await cache.get(key)
+    try:
+        dt = re.findall(r'\d{2}[./-]\d{2}[./-]\d{4}', context.args[0])[0] if context.args else None
+    except IndexError:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text='Уважаемый <i>{}</i> вводите валидный формат данных или идите нахуй'.format(
+                update.effective_user.name),
+            parse_mode='HTML'
+        )
+        return
 
-    dt = re.findall(r'\d{2}[./-]\d{2}[./-]\d{4}', context.args[0])[0] if context.args else None
     if user and not user.birthday and dt:
         user.birthday = _to_datetime(dt)
     elif user and not dt and user.birthday:
@@ -55,11 +72,16 @@ async def _reg(update: Update, context: ContextTypes.DEFAULT_TYPE):
             name=update.effective_user.name,
             birthday=_to_datetime(dt)
         )
-    await cache.set(key, user)
+    await cache.set(user)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=user.__str__(), parse_mode='HTML')
 
 
-async def _users_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
+@inject
+async def _users_info(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    cache = Provide[Container.cache]
+) -> None:
     """
     Returns info about user and their birthdays
 
@@ -85,17 +107,28 @@ async def _users_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-async def _fullness_check(update: Update, context: ContextTypes.DEFAULT_TYPE):
+@inject
+async def _fullness_check(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    cache = Provide[Container.cache]
+) -> None:
     """
     Check that count users in chat equals users in cache
     :param update:
     :param context:
     :return:
     """
-    pass
+    # ToDo: get only users without bots
+    member_count = await update.effective_chat.get_member_count()
+    users = [u for u in await cache.dall_users() if u.group_id == update.effective_chat.id]
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="Statistic {}/{} (reg member with birthday/members in chat)".format(len(users), member_count)
+    )
 
 
-async def _help(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def _help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = " The following commands are available:\n"
     commands = [
         ["/reg", "Registration user with Optional argument for birthday,\n     like: /reg 01.01.2001"],
@@ -109,11 +142,29 @@ async def _help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=text)
 
 
+@inject
+async def _test_try(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    cache = Provide[Container.cache]
+) -> None:
+    key = (update.effective_user.id, update.effective_chat.id)
+    user = await cache.get(key)
+
+    text = create_birthday_message([user])
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=text,
+        parse_mode='HTML'
+    )
+
+
 def get_handlers() -> list[CommandHandler[CallbackContext | Any]]:
     # ToDo: add handler to set timezone
     return [
         CommandHandler('reg', _reg),
         CommandHandler('info', _users_info),
         CommandHandler('fullness', _fullness_check),
+        CommandHandler('test', _test_try),
         CommandHandler('help', _help)
     ]

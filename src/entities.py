@@ -13,7 +13,14 @@ class User(BaseModel):
     def how_many_years(self) -> int:
         return datetime.now().year - self.birthday.year
 
-    def __str__(self) -> str:
-        return f"""
-        {self.name:20s} | <i>{self.birthday.strftime('%d.%m.%Y') if self.birthday else 'No info about birthday':20s} </i>
+    def rkey(self) -> str:
         """
+        Create redis key {tg_id}_{group_id)
+
+        :return:
+        """
+        return "{}_{}".format(self.tg_id, self.group_id)
+
+    def __str__(self) -> str:
+        d = f"{self.birthday.strftime('%d.%m.%Y') if self.birthday else 'No info about birthday':20s}"
+        return "{0:25s}|<i>{1:10s}</i>".format(self.name, d)

@@ -39,9 +39,8 @@ class Cache:
         except Exception as ex:
             logger.exception(ex)
 
-    async def set(self, key: tuple[int, int], user: User) -> None:
-        key = '{0}_{1}'.format(*key)
-        await self.redis.set(key, user.json())
+    async def set(self, user: User) -> None:
+        await self.redis.set(user.rkey(), user.json())
 
     async def keys(self) -> list[tuple[int, int]]:
         keys = await self.redis.keys()
