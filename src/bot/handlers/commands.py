@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ContextTypes
@@ -38,7 +39,11 @@ async def _reg(
     user = await cache.get(key)
     dt = re.findall(r'\d{2}[./-]\d{2}[./-]\d{4}', context.args[0]) if context.args else None
 
-    if (context.args and len(context.args) > 1) or (context.args and not dt):
+    ny = datetime.now().year
+    # ToDo: refactoring
+    if (context.args and len(context.args) > 1) or \
+        (context.args and not dt) or \
+        (dt and ny - _to_datetime(dt[0]).year < 18):
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text='Уважаемый <i>{}</i> вводите валидный формат данных'.format(

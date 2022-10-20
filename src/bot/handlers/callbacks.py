@@ -28,7 +28,14 @@ async def _callback_reg_query(
             parse_mode='HTML'
         )
     elif choice == '1':
-        dt = context.user_data[key]
+        dt = context.user_data.get(key)
+        if not dt:
+            await context.bot.edit_message_text(
+                chat_id=q.message.chat_id,
+                message_id=q.message.message_id,
+                text='Произошёл конфуз на производстве, попробуйте чуть позже:3',
+            )
+            return
         u = await cache.get(key)
         u.birthday = dt
         await cache.set(u)
