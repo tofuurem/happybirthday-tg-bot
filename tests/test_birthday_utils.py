@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from src.birthday_utils import check_birthday, create_birthday_message
-from src.entities import User
+from src.bot.birthday_utils import check_birthday, create_birthday_message
+from src.dto.user import User
 
 
 @pytest.fixture

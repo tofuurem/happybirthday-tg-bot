@@ -2,11 +2,11 @@ import sys
 
 from telegram.ext import ApplicationBuilder, Application
 
-from container import Container
-from src.commands import get_handlers
+from src.bot.handlers import get_handlers
+from src.container import Container
 
-from src.tasks import birthday_notify
-from src.time import seconds_first_start
+from src.bot.tasks import birthday_notify
+from src.bot.time import seconds_first_start
 
 
 class App:
@@ -20,8 +20,9 @@ class App:
         self._container.wire(
             modules=[
                 sys.modules[__name__],
-                sys.modules["src.commands"],
-                sys.modules["src.tasks"]
+                sys.modules["src.bot.tasks"],
+                sys.modules["src.bot.handlers.commands"],
+                sys.modules["src.bot.handlers.callbacks"],
             ]
         )
         self._container.init_resources()

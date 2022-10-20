@@ -25,5 +25,5 @@ class User(BaseModel):
 
     def __str__(self) -> str:
         d = f"{self.birthday.strftime('%d.%m.%Y') if self.birthday else 'No info about birthday':20s}"
-        sex = "({0:2s})".format(self.sex) if self.sex is not None else ''
+        sex = "({0:1s}) ".format(self.sex) if self.sex is not None else ''
         return "{1}{0:25s} | <i>{2:10s}</i>".format(self.name, sex, d)

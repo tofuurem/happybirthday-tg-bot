@@ -1,19 +1,20 @@
 from loguru import logger
 
 from telegram.ext import ContextTypes
-from dependency_injector.wiring import inject, Provide
+from dependency_injector.wiring import Provide
 
-from container import Container
-from src.birthday_utils import check_birthday, create_birthday_message
+from src.container import Container
+from src.bot.birthday_utils import check_birthday, create_birthday_message
+from src.storage.cache import Cache
 
 
 async def birthday_notify(
     context: ContextTypes.DEFAULT_TYPE,
-    cache = Provide[Container.cache]) -> None:
+    cache: Cache = Provide[Container.cache]
+) -> None:
     """
     Notify about birthday of users
 
-    :param context:
     :return:
     """
     try:

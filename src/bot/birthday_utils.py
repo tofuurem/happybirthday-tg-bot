@@ -1,8 +1,17 @@
 from datetime import datetime, date
 
-from src.entities import User
+from src.dto.user import User
 
 from loguru import logger
+
+
+def _ru_age(age: int) -> str:
+    if (age % 10 == 1) and (age != 11) and (age != 111):
+        return "годик"
+    elif (age % 10 > 1) and (age % 10 < 5) and (age != 12) and (age != 13) and (age != 14):
+        return "годика"
+    else:
+        return "годиков"
 
 
 def check_birthday(data: list[User], *, current_date: date | None = None) -> dict[int, list[User]]:
@@ -28,21 +37,23 @@ def check_birthday(data: list[User], *, current_date: date | None = None) -> dic
 
 
 def create_birthday_message(birthdays: list[User]) -> str:
-    # ToDo: add sex user
     text = """А кто это у нас хотел зашкериться? А? А? А?\nА я вам скажу кто ето, хе-хе-хе <i>фото_члена.jpg</i>\n"""
     if len(birthdays) > 1:
         user = ""
         for b in birthdays:
-            user += "<i><b>{0:30s}</b></i> - <b>{1:4d}</b> годика\n".format(b.name, b.how_many_years())
+            age = b.how_many_years()
+            user += "<i><b>{0:30s}</b></i> - <b>{1:4d}</b> {2}\n".format(b.name, age, _ru_age(age))
         text += "Так вот сегодня у нас несколько именинников:\n"
         text += user
-        text += "Так восславим же этих бесславных котиков выпивкой и весельем, что бы их душа попала в ВАЛЬГХАЛЛУ! (" \
-                "но не сегодня) \n"
+        text += "Так восславим же этих бесславных котиков <b>выпивкой</b> и весельем, " \
+                "что бы их душа попала в ВАЛЬГХАЛЛУ! (но не сегодня) \n"
     else:
-        text += "Так вот сегодня у нас день рождение у <i><b>{}</b></i>, и исполняется <b>{}</b> годиков\n".format(
-            birthdays[0].name, birthdays[0].how_many_years()
+        age = birthdays[0].how_many_years()
+        text += "Так вот сегодня у нас день рождение у <i><b>{}</b></i>, и исполняется <b>{}</b> {}\n".format(
+            birthdays[0].name, age, _ru_age(age)
         )
         text += "Так восславим же этого бесславного котика выпивкой и весельем, что бы его душа попала в ВАЛЬГХАЛЛУ! " \
                 "(но не сегодня) \n"
-    text += "<b><u>ДИСКЛЕЙМЕР</u></b>: Употребление алкоголя приводит к видосам которых вы потом будете стыдиться"
+    text += "<b><u>ДИСКЛЕЙМЕР</u></b>: <i>Употребление алкоголя приводит к " \
+            "видосам которых вы потом будете стыдиться </i>"
     return text
