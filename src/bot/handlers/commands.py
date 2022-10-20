@@ -46,6 +46,10 @@ async def _reg(
             parse_mode='HTML'
         )
         return
+    if user and update.effective_user.name:
+        user.name = update.effective_user.name
+        await cache.set(user)
+
     if user and dt and dt != user.birthday:
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
