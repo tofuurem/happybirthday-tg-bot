@@ -27,6 +27,7 @@ class App:
         self._container.init_resources()
 
     def _init_app(self) -> Application:
+        # ToDo: add https://github.com/python-telegram-bot/python-telegram-bot/wiki/Adding-defaults-to-your-bot
         _app = ApplicationBuilder().token(self._container.config().tg_token).build()
         _app.add_handlers(get_handlers())
         jq = _app.job_queue
