@@ -21,7 +21,12 @@ class App:
             modules=[
                 sys.modules[__name__],
                 sys.modules["src.bot.tasks"],
-                sys.modules["src.bot.handlers.commands"],
+                sys.modules["src.bot.handlers.fullness"],
+                sys.modules["src.bot.handlers.help"],
+                sys.modules["src.bot.handlers.info"],
+                sys.modules["src.bot.handlers.reg"],
+                sys.modules["src.bot.handlers.sex"],
+                sys.modules["src.bot.handlers.test_try"],
                 sys.modules["src.bot.handlers.callbacks"],
             ]
         )

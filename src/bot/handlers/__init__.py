@@ -1,9 +1,14 @@
 from typing import Any
 
-from telegram.ext import ContextTypes, CommandHandler, CallbackContext, CallbackQueryHandler
+from telegram.ext import CommandHandler, CallbackContext, CallbackQueryHandler
 
 from src.bot.handlers.callbacks import _callback_reg_query
-from src.bot.handlers.commands import _reg, _users_info, _fullness_check, _test_try, _choose_sex, _help
+from src.bot.handlers.fullness import _fullness_check
+from src.bot.handlers.help import _help
+from src.bot.handlers.info import _users_info
+from src.bot.handlers.reg import _reg
+from src.bot.handlers.sex import _choose_sex
+from src.bot.handlers.test_try import _test_try
 
 
 def get_handlers() -> list[CommandHandler[CallbackContext | Any]]:

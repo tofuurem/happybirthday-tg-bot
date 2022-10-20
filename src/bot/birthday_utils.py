@@ -37,6 +37,7 @@ def check_birthday(data: list[User], *, current_date: date | None = None) -> dic
 
 
 def create_birthday_message(birthdays: list[User]) -> str:
+    # ToDo: create template (jinja or another)
     text = """А кто это у нас хотел зашкериться? А? А? А?\nА я вам скажу кто ето, хе-хе-хе <i>фото_члена.jpg</i>\n"""
     if len(birthdays) > 1:
         user = ""
