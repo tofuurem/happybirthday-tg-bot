@@ -28,26 +28,37 @@ async def _callback_reg_query(
     context: ContextTypes.DEFAULT_TYPE,
     cache: Cache = Provide[Container.cache]
 ) -> None:
-    query = update.callback_query
-    await query.answer()
-    choice = query.data
+    q = update.callback_query
+    await q.answer()
+    choice = q.data
+    key = (update.effective_user.id, update.effective_chat.id)
 
+    # maybe pattern matching?:D
     if choice == '0':
         await context.bot.edit_message_text(
-            chat_id=query.message.chat_id,
-            message_id=query.message.message_id,
+            chat_id=q.message.chat_id,
+            message_id=q.message.message_id,
             text='Ваши данные остались теми же.',
             parse_mode='HTML'
         )
     elif choice == '1':
-        key = (update.effective_user.id, update.effective_chat.id)
         dt = context.user_data[key]
         u = await cache.get(key)
         u.birthday = dt
         await cache.set(u)
         await context.bot.edit_message_text(
-            chat_id=query.message.chat_id,
-            message_id=query.message.message_id,
+            chat_id=q.message.chat_id,
+            message_id=q.message.message_id,
+            text=u.__str__(),
+            parse_mode='HTML'
+        )
+    elif choice in ['М', 'Ж']:
+        u = await cache.get(key)
+        u.sex = choice
+        await cache.set(u)
+        await context.bot.edit_message_text(
+            chat_id=q.message.chat_id,
+            message_id=q.message.message_id,
             text=u.__str__(),
             parse_mode='HTML'
         )
@@ -179,10 +190,44 @@ async def _fullness_check(
     )
 
 
+@inject
+async def _choose_sex(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    cache: Cache = Provide[Container.cache]
+) -> None:
+    """
+    Choose sex for user
+    :param update:
+    :param context:
+    :return:
+    """
+    key = (update.effective_user.id, update.effective_chat.id)
+    user = await cache.get(key)
+
+    if not user:
+        await context.bot.send_message(update.effective_chat.id, text="Для начала зарегистрируйтесь: /reg dd.mm.yyyy")
+        return
+
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text='Выберете пол:',
+        reply_markup=InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton("М", callback_data='М'),
+                    InlineKeyboardButton("Ж", callback_data='Ж')
+                ]
+            ],
+            one_time_keyboard=True
+        )
+    )
+
+
 async def _help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = " The following commands are available:\n"
     commands = [
-        ["/reg", "Registration user with Optional argument for birthday,\n{like:15s}: /reg 01.01.2001"],
+        ["/reg", "Registration user with Optional argument for birthday,\n{0:15s}: /reg 01.01.2001".format('like')],
         ["/info", "Returns info about user and their birthdays"],
         ["/fullness", "Check that count users in chat equals users in cache"],
         ["/help", "Get this message"]
@@ -217,6 +262,7 @@ def get_handlers() -> list[CommandHandler[CallbackContext | Any]]:
         CommandHandler('info', _users_info),
         CommandHandler('fullness', _fullness_check),
         CommandHandler('test', _test_try),
+        CommandHandler('sex', _choose_sex),
         CommandHandler('help', _help),
         CallbackQueryHandler(_callback_reg_query)
     ]

@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from typing import Literal
 
 from pydantic.main import BaseModel
 
@@ -8,6 +9,7 @@ class User(BaseModel):
     group_id: int | None
     name: str | None
     birthday: date | None
+    sex: Literal["М", "Ж"] | None = None
     # ToDo: create validation for date
 
     def how_many_years(self) -> int:
@@ -23,4 +25,5 @@ class User(BaseModel):
 
     def __str__(self) -> str:
         d = f"{self.birthday.strftime('%d.%m.%Y') if self.birthday else 'No info about birthday':20s}"
-        return "{0:25s}|<i>{1:10s}</i>".format(self.name, d)
+        sex = "({0:2s})".format(self.sex) if self.sex is not None else ''
+        return "{0:25s} {1}| <i>{2:10s}</i>".format(self.name, sex, d)
