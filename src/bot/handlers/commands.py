@@ -1,58 +1,14 @@
 import re
-from datetime import datetime, date
-from typing import Any
 
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import ContextTypes, CommandHandler, CallbackContext, CallbackQueryHandler
-
+from telegram.ext import ContextTypes
 from dependency_injector.wiring import inject, Provide
-from loguru import logger
 
-from container import Container
-from src.birthday_utils import create_birthday_message
-from src.entities import User
-from src.redis_cache import Cache
-
-
-def _to_datetime(dt: str | None) -> date | None:
-    if dt is None:
-        return None
-    splitter = re.search(r'[./-]', dt).group()
-    fmt = '%d{0}%m{0}%Y'.format(splitter)
-    return datetime.strptime(dt, fmt).date()
-
-
-@inject
-async def _callback_reg_query(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-    cache: Cache = Provide[Container.cache]
-) -> None:
-    query = update.callback_query
-    await query.answer()
-    choice = query.data
-
-    if choice == '0':
-        await context.bot.edit_message_text(
-            chat_id=query.message.chat_id,
-            message_id=query.message.message_id,
-            text='Ваши данные остались теми же.',
-            parse_mode='HTML'
-        )
-    elif choice == '1':
-        key = (update.effective_user.id, update.effective_chat.id)
-        dt = context.user_data[key]
-        u = await cache.get(key)
-        u.birthday = dt
-        await cache.set(u)
-        await context.bot.edit_message_text(
-            chat_id=query.message.chat_id,
-            message_id=query.message.message_id,
-            text=u.__str__(),
-            parse_mode='HTML'
-        )
-    else:
-        logger.error("Bad callback")
+from src.bot.time import _to_datetime
+from src.container import Container
+from src.bot.birthday_utils import create_birthday_message
+from src.dto.user import User
+from src.storage.cache import Cache
 
 
 @inject
@@ -95,7 +51,7 @@ async def _reg(
             chat_id=update.effective_chat.id,
             text='Вы {0} уверены, что хотите заменить {1} на {2} дату?'.format(
                 user.name,
-                user.birthday.strftime('%d.%m.%Y'),
+                user.birthday.strftime('%d.%m.%Y') if user.birthday else 'None',
                 dt[0]
             ),
             reply_markup=InlineKeyboardMarkup(
@@ -179,10 +135,45 @@ async def _fullness_check(
     )
 
 
+@inject
+async def _choose_sex(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    cache: Cache = Provide[Container.cache]
+) -> None:
+    """
+    Choose sex for user
+    :param update:
+    :param context:
+    :return:
+    """
+    key = (update.effective_user.id, update.effective_chat.id)
+    user = await cache.get(key)
+
+    if not user:
+        await context.bot.send_message(update.effective_chat.id, text="Для начала зарегистрируйтесь: /reg dd.mm.yyyy")
+        return
+
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text='Выберете пол:',
+        reply_markup=InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton("М", callback_data='М'),
+                    InlineKeyboardButton("Ж", callback_data='Ж')
+                ]
+            ],
+            one_time_keyboard=True
+        )
+    )
+
+
 async def _help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = " The following commands are available:\n"
     commands = [
-        ["/reg", "Registration user with Optional argument for birthday,\n{like:15s}: /reg 01.01.2001"],
+        ["/reg", "Registration user with Optional argument for birthday,\n{0:15s}like: /reg 01.01.2001".format(' ')],
+        ["/sex", "Choose sex for user"],
         ["/info", "Returns info about user and their birthdays"],
         ["/fullness", "Check that count users in chat equals users in cache"],
         ["/help", "Get this message"]
@@ -208,15 +199,3 @@ async def _test_try(
         text=text,
         parse_mode='HTML'
     )
-
-
-def get_handlers() -> list[CommandHandler[CallbackContext | Any]]:
-    # ToDo: add handler to set timezone
-    return [
-        CommandHandler('reg', _reg),
-        CommandHandler('info', _users_info),
-        CommandHandler('fullness', _fullness_check),
-        CommandHandler('test', _test_try),
-        CommandHandler('help', _help),
-        CallbackQueryHandler(_callback_reg_query)
-    ]
