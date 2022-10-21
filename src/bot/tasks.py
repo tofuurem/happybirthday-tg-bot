@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from loguru import logger
 
 from telegram.ext import ContextTypes
@@ -17,6 +19,8 @@ async def birthday_notify(
 
     :return:
     """
+    timezone = context.bot.defaults.tzinfo
+    now = datetime.now(tz=timezone).date()
     try:
         data = await cache.dall_users()
     except Exception as ex:
@@ -26,7 +30,7 @@ async def birthday_notify(
     if not data:
         logger.info('No data from cache')
         return
-    pretty_data = check_birthday(data)
+    pretty_data = check_birthday(data, current_date=now)
     if not pretty_data:
         logger.info('No birthdays today')
         return

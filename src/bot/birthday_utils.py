@@ -25,6 +25,7 @@ def check_birthday(data: list[User], *, current_date: date | None = None) -> dic
             logger.warning('No info about birthday for user: {}|{}, chat: {}'.format(d.tg_id, d.name, chat_id))
             continue
         dd, dm, dy = d.birthday.day, d.birthday.month, d.birthday.year
+        # logger.debug('now: {}d {}m, cur: {}d {}m'.format(nd, nm, dd, dm))
         if nm == dm:
             if nd == dd:
                 logger.info('Today Birthday of user: {}|{}, chat: {}'.format(d.tg_id, d.name, chat_id))
