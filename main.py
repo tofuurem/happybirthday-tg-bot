@@ -1,6 +1,6 @@
 import sys
 
-from telegram.ext import ApplicationBuilder, Application
+from telegram.ext import ApplicationBuilder, Application, JobQueue
 
 from src.bot.handlers import get_handlers
 from src.container import Container
@@ -36,10 +36,13 @@ class App:
         # ToDo: add https://github.com/python-telegram-bot/python-telegram-bot/wiki/Adding-defaults-to-your-bot
         _app = ApplicationBuilder().token(self._container.config().tg_token).build()
         _app.add_handlers(get_handlers())
-        jq = _app.job_queue
+        jq: JobQueue = _app.job_queue
+
+        _ = jq.run_once(birthday_notify, 1)
 
         first = seconds_first_start()
-        job_daily = jq.run_repeating(birthday_notify, interval=first + 86400, first=first)
+        _ = jq.run_repeating(birthday_notify, interval=first + 86400, first=first)
+
         return _app
 
     def run(self) -> None:
