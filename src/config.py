@@ -1,21 +1,34 @@
 from pydantic.env_settings import BaseSettings
 from pydantic.fields import Field
+from sqlalchemy import URL
+
+
+class PostgresConfig(BaseSettings):
+    host: str = Field(env='PG_HOST')
+    port: int = Field(env='PG_PORT')
+    db: str = Field(env='PG_DB')
+    schema_db: str = Field(env='PG_SCHEMA')
+    user: str = Field(env='PG_USER')
+    password: str = Field(env='PG_PASSWORD')
+
+    @property
+    def connection_string(self) -> URL:
+        return URL.create(
+            "postgresql+asyncpg",
+            username=self.user,
+            password=self.password,
+            host=self.host,
+            port=self.port,
+            database=self.db,
+        )
+
+    class Config:
+        env_file = '.env'
 
 
 class Configuration(BaseSettings):
     tg_token: str = Field(env='TG_TOKEN')
-
-    redis_host: str = Field(default='localhost', env='REDIS_HOST')
-    redis_port: int = Field(default=6379, env='REDIS_PORT')
-    redis_db: int = Field(default=1, env='REDIS_DB')
-
-    @property
-    def redis_url(self) -> str:
-        return "redis://{0}:{1}/{2}".format(
-            self.redis_host,
-            self.redis_port,
-            self.redis_db
-        )
+    pg: PostgresConfig = Field(default_factory=PostgresConfig)
 
     class Config:
-        env_file = '../.env'
+        env_file = '.env'

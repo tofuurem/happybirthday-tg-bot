@@ -5,7 +5,7 @@ from dependency_injector.wiring import Provide
 
 from src.container import Container
 from src.bot.birthday_utils import check_birthday, create_birthday_message
-from src.storage.cache import Cache
+from src.dao.storage import Cache
 
 
 async def birthday_notify(
@@ -14,8 +14,6 @@ async def birthday_notify(
 ) -> None:
     """
     Notify about birthday of users
-
-    :return:
     """
     try:
         data = await cache.dall_users()

@@ -4,11 +4,8 @@ from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ContextTypes
 from dependency_injector.wiring import inject, Provide
 
-from src.bot.time import _to_datetime
+from src.bot.time import to_datetime
 from src.container import Container
-from src.bot.birthday_utils import create_birthday_message
-from src.dto.user import User
-from src.storage.cache import Cache
 
 
 @inject
@@ -64,7 +61,7 @@ async def _reg(
                 one_time_keyboard=True
             )
         )
-        context.user_data[key] = _to_datetime(dt[0])
+        context.user_data[key] = to_datetime(dt[0])
         return
     elif user and not dt and user.birthday:
         await context.bot.send_message(
@@ -78,7 +75,7 @@ async def _reg(
             tg_id=update.effective_user.id,
             group_id=update.effective_chat.id,
             name=update.effective_user.name,
-            birthday=_to_datetime(dt)
+            birthday=to_datetime(dt)
         )
         await cache.set(user)
         await context.bot.send_message(chat_id=update.effective_chat.id, text=user.__str__(), parse_mode='HTML')
@@ -111,27 +108,6 @@ async def _users_info(
         chat_id=update.effective_chat.id,
         text=text,
         parse_mode='HTML'
-    )
-
-
-@inject
-async def _fullness_check(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-    cache: Cache = Provide[Container.cache]
-) -> None:
-    """
-    Check that count users in chat equals users in cache
-    :param update:
-    :param context:
-    :return:
-    """
-    # ToDo: get only users without bots
-    member_count = await update.effective_chat.get_member_count()
-    users = [u for u in await cache.dall_users() if u.group_id == update.effective_chat.id]
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text="Statistic {}/{} (reg member with birthday/members in chat)".format(len(users), member_count)
     )
 
 
@@ -172,30 +148,12 @@ async def _choose_sex(
 async def _help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = " The following commands are available:\n"
     commands = [
-        ["/reg", "Registration user with Optional argument for birthday,\n{0:15s}like: /reg 01.01.2001".format(' ')],
-        ["/sex", "Choose sex for user"],
-        ["/info", "Returns info about user and their birthdays"],
-        ["/fullness", "Check that count users in chat equals users in cache"],
+        ["/reg", "Update user info about birthday in formats %d.%m.%y or %d.%m"],
+        ["/nearest", "Get nearest 3 birthdays"],
+        ["/birthdays", "Returns info about chat and all users birthdays"],
         ["/help", "Get this message"]
     ]
     for command in commands:
         text += f"{command[0]:10s} - {command[1]}\n"
 
     await context.bot.send_message(chat_id=update.effective_chat.id, text=text)
-
-
-@inject
-async def _test_try(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-    cache: Cache = Provide[Container.cache]
-) -> None:
-    key = (update.effective_user.id, update.effective_chat.id)
-    user = await cache.get(key)
-
-    text = create_birthday_message([user])
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=text,
-        parse_mode='HTML'
-    )

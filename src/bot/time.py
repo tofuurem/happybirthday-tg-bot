@@ -13,7 +13,7 @@ def seconds_first_start(start_time: str = '06:00') -> int:
     return int(wt.total_seconds())
 
 
-def _to_datetime(dt: str | None) -> date | None:
+def to_datetime(dt: str | None) -> date | None:
     if dt is None:
         return None
     splitter = re.search(r'[./-]', dt).group()

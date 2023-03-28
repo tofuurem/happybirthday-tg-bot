@@ -1,6 +1,6 @@
 from typing import Any
 
-from telegram.ext import ContextTypes, CommandHandler, CallbackContext, CallbackQueryHandler
+from telegram.ext import CommandHandler, CallbackContext, CallbackQueryHandler
 
 from src.bot.handlers.callbacks import _callback_reg_query
 from src.bot.handlers.commands import _reg, _users_info, _fullness_check, _test_try, _choose_sex, _help
@@ -11,6 +11,8 @@ def get_handlers() -> list[CommandHandler[CallbackContext | Any]]:
     # ToDo: add handler to set timezone
     return [
         CommandHandler('reg', _reg),
+        # command reg_chat - что бы зарегистрировать чат и всех его пользователей если их нет в бд,
+        # добавить и привязать сразу к этому чату
         CommandHandler('info', _users_info),
         CommandHandler('fullness', _fullness_check),
         CommandHandler('test', _test_try),

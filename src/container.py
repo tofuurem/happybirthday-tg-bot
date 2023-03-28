@@ -1,19 +1,19 @@
 from dependency_injector import containers, providers
 
 from src.config import Configuration
-from src.storage.cache import Cache
-from src.storage.redis_transport import RedisTransport
+from src.dao.storage.cache import Cache
+from src.dao.storage.resources.sql_transport import SQLTransport
 
 
 class Container(containers.DeclarativeContainer):
     config: providers.Singleton[Configuration] = providers.Singleton(Configuration)
 
-    _redis: providers.Factory[RedisTransport] = providers.Factory(
-        RedisTransport,
-        url=config().redis_url
+    _sql: providers.Factory[SQLTransport] = providers.Factory(
+        SQLTransport,
+        url=config.provided
     )
 
     cache: providers.Factory[Cache] = providers.Factory(
         Cache,
-        transport=_redis
+        transport=_sql
     )
