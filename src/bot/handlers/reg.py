@@ -1,3 +1,4 @@
+import random
 import re
 
 from dependency_injector.wiring import inject, Provide
@@ -8,6 +9,14 @@ from src.bot.functions.time import to_datetime
 from src.container import Container
 from src.dao.dto.database import Chat, User, Association
 from src.dao.storage.cache import Cache
+
+answers = [
+    "Знакомые лица:3",
+    "Ооо, кто это тут у нас:3",
+    "Хох, новых друзей решил найти человечешка?",
+    "Знакомые лица:3 Ну вас то я помню",
+    "Ой куда не зайду тебя вижу, хватит так много общаться -_-"
+]
 
 
 @inject
@@ -37,6 +46,15 @@ async def reg_handler(
     if not await cache.is_user_in_room(update.effective_user.id, update.effective_chat.id):
         chat_user = Association(user_id=user.id, chat_id=chat.id)
         await cache.add_model(chat_user)
+
+    if user.birthday:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=random.choice(answers),
+            parse_mode='HTML'
+        )
+
+        return
 
     dt = re.search(r'\d{2}[./-]\d{2}([./-]\d{4})?', context.args[0]) if context.args else None
     if dt:

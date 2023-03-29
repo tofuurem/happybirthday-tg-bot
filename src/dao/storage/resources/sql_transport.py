@@ -1,4 +1,4 @@
-from typing import Type
+from typing import Type, Sequence
 
 from loguru import logger
 from sqlalchemy import select
@@ -33,6 +33,20 @@ class SQLTransport:
         async with engine.begin() as conn:
             Base.metadata.schema = self.cfg.schema_db
             await conn.run_sync(Base.metadata.create_all)
+
+    async def users_by_room(self, tg_id: int) -> Sequence[User]:
+        async_session = await self.async_session()
+        async with async_session() as session:
+            stmp = (
+                select(User)
+                .join(Association)
+                .join(Chat)
+                .where(User.id == Association.user_id)
+                .where(Chat.id == Association.chat_id)
+                .where(Chat.tg_id == tg_id)
+            )
+            result = await session.execute(stmp)
+            return result.scalars().all()
 
     async def get_model(self, tg_id: int, model: Type[Chat | User], *, lazy: bool = False) -> Chat | User | None:
         # fixme: sometimes it's kill me

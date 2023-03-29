@@ -1,4 +1,4 @@
-from typing import Type
+from typing import Type, Sequence
 
 from telegram import User as TgUser
 from telegram import Chat as TgChat
@@ -11,8 +11,15 @@ class Cache:
     def __init__(self, transport: SQLTransport) -> None:
         self._tr = transport
 
-    async def get_user_and_chat(
-        self, tg_user: TgUser | None,
+    async def users_by_room(
+        self,
+        tg_id: int
+    ) -> Sequence[User]:
+        return await self._tr.users_by_room(tg_id)
+
+    async def update_if_not_exists(
+        self,
+        tg_user: TgUser | None,
         tg_chat: TgChat | None,
         *,
         lazy: bool = False

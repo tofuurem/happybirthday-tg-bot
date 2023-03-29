@@ -22,11 +22,13 @@ async def birthdays(
         user2 10.12.1934
     """
 
-    user, chat = await cache.get_user_and_chat(update.effective_chat, update.effective_user, lazy=True)
+    await cache.update_if_not_exists(tg_chat=update.effective_chat, tg_user=update.effective_user, lazy=True)
+    users = await cache.users_by_room(update.effective_chat.id)
     text = "Users with birthdays ({0}/{1}):\n{2}".format(
-        chat.users,
+        # -1 because bot not user:/
+        len(users) - 1,
         await update.effective_chat.get_member_count(),
-        "\n".join(["{0:15s} {1}".format(u.name, user.birthday.strftime('%d.%m')) for u in chat.users])
+        "\n".join(["{0:15s} {1}".format(u.name, u.birthday.strftime('%d.%m')) for u in users])
     )
 
     await context.bot.send_message(

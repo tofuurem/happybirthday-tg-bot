@@ -1,7 +1,7 @@
 from datetime import date
 from typing import List
 
-from sqlalchemy import ForeignKey, Date
+from sqlalchemy import ForeignKey, Date, BigInteger
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -13,7 +13,7 @@ class User(Base):
     __tablename__ = "user"
     __table_args__ = {"schema": "public"}
     id: Mapped[int] = mapped_column(primary_key=True)
-    tg_id: Mapped[int] = mapped_column(unique=True)
+    tg_id: Mapped[int] = mapped_column(BigInteger, unique=True)
     first_name: Mapped[str] = mapped_column()
     last_name: Mapped[str] = mapped_column(default='')
     user_name: Mapped[str] = mapped_column(default='')
@@ -31,7 +31,7 @@ class Chat(Base):
     __tablename__ = "chat"
     __table_args__ = {"schema": "public"}
     id: Mapped[int] = mapped_column(primary_key=True)
-    tg_id: Mapped[int] = mapped_column(unique=True)
+    tg_id: Mapped[int] = mapped_column(BigInteger, unique=True)
     title: Mapped[str] = mapped_column()
     users: Mapped[List["Association"]] = relationship(back_populates="chat")
 

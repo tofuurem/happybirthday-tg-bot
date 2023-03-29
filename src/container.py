@@ -10,7 +10,7 @@ class Container(containers.DeclarativeContainer):
 
     _sql: providers.Factory[SQLTransport] = providers.Factory(
         SQLTransport,
-        url=config.provided
+        cfg=config.provided
     )
 
     cache: providers.Factory[Cache] = providers.Factory(

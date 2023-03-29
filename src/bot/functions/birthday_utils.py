@@ -4,6 +4,8 @@ from datetime import datetime, date
 
 from loguru import logger
 
+from src.dao.dto.database import User
+
 
 def _ru_age(age: int) -> str:
     if (age % 10 == 1) and (age != 11) and (age != 111):
