@@ -9,5 +9,8 @@ docker run --network host -d --restart always \
   -e PG_USER="$PG_USER" \
   -e PG_SCHEMA="$PG_SCHEMA" \
   -e PG_PASSWORD="$PG_PASSWORD" \
-  --name "$PROJECT_NAME-$POSTFIX" \
+  -e PG_DB="$PG_DB" \
+  -e PG_PORT="$PG_PORT" \
+  -e PG_HOST="$PG_HOST" \
+  --name "$PROJECT_NAME" \
   -it "$PROJECT_NAME":"$TAG_PROJECT"
