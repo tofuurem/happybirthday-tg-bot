@@ -11,7 +11,7 @@ class PostgresConfig(BaseSettings):
     password: str = Field(env='PG_PASSWORD')
 
     @property
-    def connection_string(self) -> str:
+    def connection_string(self) -> URL:
         return URL.create(
             "postgresql+asyncpg",
             username=self.user,
@@ -19,7 +19,7 @@ class PostgresConfig(BaseSettings):
             host=self.host,
             port=self.port,
             database=self.db,
-        ).__str__()
+        )
 
     class Config:
         env_file = '.env'

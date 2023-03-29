@@ -8,13 +8,13 @@ stages:
   - deploy
 
 before_script:
-  - export TMP_TAG_PROJECT=$(git tag -l | sort -V | tail -n 1 | sed 's/^v//')-"$CI_JOB_ID"
   - export LAST_TAG=$(git tag -l | sort -V | tail -n 1 | sed 's/^v//')
 
 build:
   stage: build
   script:
-    - docker build -t "$PROJECT_NAME":"$TMP_TAG_PROJECT" .
+    - cat $ENV_FILE > .env
+    - docker build -t "$PROJECT_NAME":"$LAST_TAG" .
   rules:
     - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
       when: never
@@ -26,8 +26,7 @@ build:
 deploy:
   stage: deploy
   script:
-    - docker tag "$PROJECT_NAME":"$TMP_TAG_PROJECT" "$PROJECT_NAME":"$LAST_TAG"
-    - source ./docker/run.sh "$LAST_TAG"
+    - source ./docker/run.sh
   tags:
     - telegram_bot
   rules:

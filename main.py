@@ -1,5 +1,6 @@
 import sys
 
+from loguru import logger
 from telegram.ext import ApplicationBuilder, Application
 
 from src.bot import get_handlers
@@ -40,6 +41,7 @@ class App:
         return _app
 
     def run(self) -> None:
+        logger.info('start bot')
         self._app.run_polling()
 
 

@@ -32,7 +32,7 @@ class Chat(Base):
     __table_args__ = {"schema": "public"}
     id: Mapped[int] = mapped_column(primary_key=True)
     tg_id: Mapped[int] = mapped_column(BigInteger, unique=True)
-    title: Mapped[str] = mapped_column()
+    title: Mapped[str] = mapped_column(nullable=True)
     users: Mapped[List["Association"]] = relationship(back_populates="chat")
 
 
