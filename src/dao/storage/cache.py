@@ -11,6 +11,14 @@ class Cache:
     def __init__(self, transport: SQLTransport) -> None:
         self._tr = transport
 
+    async def get_chats_for_users(self, users: list[User]) -> dict[User, list[Chat]]:
+        return {
+            u: list(await self._tr.get_chats_user(u.id))
+            for u in users
+        }
+    async def get_all_users(self) -> Sequence[User]:
+        return await self._tr.get_all_users()
+
     async def users_by_room(
         self,
         tg_id: int

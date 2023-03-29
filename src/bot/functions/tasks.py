@@ -15,28 +15,21 @@ async def birthday_notify(
     """
     Notify about birthday of users
     """
-    try:
-        data = await cache.dall_users()
-    except Exception as ex:
-        logger.exception(ex)
-        return
-
-    if not data:
-        logger.info('No data from cache')
-        return
-    pretty_data = check_birthday(data)
+    all_users = await cache.get_all_users()
+    pretty_data = check_birthday(list(all_users))
     if not pretty_data:
         logger.info('No birthdays today')
         return
 
-    for chat_id, birthdays in pretty_data.items():
-        text = create_birthday_message(birthdays)
-        try:
+    data = await cache.get_chats_for_users(pretty_data)
+
+    for user, chats in data.items():
+        for chat in chats:
             await context.bot.send_message(
-                chat_id=chat_id,
-                text=text,
+                chat_id=chat.tg_id,
+                text="""
+                        У нас тут день варенья у кое кого....
+                        @{0} - {1} <i>фото_члена.jpg</i>
+                    """.format(user.user_name, user.first_name),
                 parse_mode='HTML'
             )
-        except Exception as ex:
-            logger.error(ex)
-            # ToDo(stichcode): send msg admin if error or sentry?

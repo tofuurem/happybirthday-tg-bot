@@ -34,6 +34,24 @@ class SQLTransport:
             Base.metadata.schema = self.cfg.schema_db
             await conn.run_sync(Base.metadata.create_all)
 
+    async def get_chats_user(self, user_id: int) -> Sequence[Chat]:
+        async_session = await self.async_session()
+        async with async_session() as session:
+            stmp = (
+                select(Chat)
+                .join(Association)
+                .where(Chat.id == Association.chat_id)
+                .where(Association.user_id == user_id)
+            )
+            result = await session.execute(stmp)
+            return result.scalars().all()
+
+    async def get_all_users(self) -> Sequence[User]:
+        async_session = await self.async_session()
+        async with async_session() as session:
+            result = await session.execute(select(User).where(User.birthday != None))
+            return result.scalars().all()
+
     async def users_by_room(self, tg_id: int) -> Sequence[User]:
         async_session = await self.async_session()
         async with async_session() as session:
