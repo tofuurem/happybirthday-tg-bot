@@ -52,7 +52,7 @@ class SQLTransport:
             result = await session.execute(select(User).where(User.birthday != None))
             return result.scalars().all()
 
-    async def users_by_room(self, tg_id: int) -> Sequence[User]:
+    async def users_by_room(self, tg_id: int, only_with_bs: bool) -> Sequence[User]:
         async_session = await self.async_session()
         async with async_session() as session:
             stmp = (
@@ -63,6 +63,8 @@ class SQLTransport:
                 .where(Chat.id == Association.chat_id)
                 .where(Chat.tg_id == tg_id)
             )
+            if only_with_bs:
+                stmp = stmp.where(User.birthday != None)
             result = await session.execute(stmp)
             return result.scalars().all()
 

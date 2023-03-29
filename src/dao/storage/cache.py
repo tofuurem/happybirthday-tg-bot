@@ -22,9 +22,11 @@ class Cache:
 
     async def users_by_room(
         self,
-        tg_id: int
+        tg_id: int,
+        *,
+        only_with_bs: bool = False
     ) -> Sequence[User]:
-        return await self._tr.users_by_room(tg_id)
+        return await self._tr.users_by_room(tg_id, only_with_bs=only_with_bs)
 
     async def update_if_not_exists(
         self,

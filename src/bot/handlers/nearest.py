@@ -28,8 +28,13 @@ async def nearest_handler(
     now = _now()
     users = [
         u
-        for u in sorted(await cache.users_by_room(update.effective_chat.id), key=lambda x: getattr(x, 'birthday'))
-        if u.birthday and u.birthday > now
+        for u in sorted(
+            await cache.users_by_room(
+                update.effective_chat.id, only_with_bs=True
+            ),
+            key=lambda x: getattr(x, 'birthday')
+        )
+        if u.birthday > now
     ]
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
