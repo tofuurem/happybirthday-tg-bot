@@ -34,7 +34,7 @@ async def nearest_handler(
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text="Nearest users birthdays:\n{0}".format(
-            "\n".join(["{0:15s} {1}".format(u.name, u.birthday.strftime('%d.%m')) for u in users])
+            "\n".join(["{0:15s} {1}".format(u.name, u.birthday.strftime('%d.%m')) for u in users[:3]])
         ),
         parse_mode='HTML'
     )
