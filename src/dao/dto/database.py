@@ -22,6 +22,10 @@ class User(Base):
 
     chats: Mapped[List["Association"]] = relationship(back_populates="user")
 
+    @property
+    def name(self) -> str:
+        return self.first_name or self.user_name or self.last_name
+
 
 class Chat(Base):
     __tablename__ = "chat"
@@ -41,4 +45,3 @@ class Association(Base):
 
     user: Mapped["User"] = relationship(back_populates="chats")
     chat: Mapped["Chat"] = relationship(back_populates="users")
-

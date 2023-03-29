@@ -34,12 +34,14 @@ class SQLTransport:
             Base.metadata.schema = self.cfg.schema_db
             await conn.run_sync(Base.metadata.create_all)
 
-    async def get_model(self, tg_id: int, model: Type[Chat | User]) -> Chat | User | None:
+    async def get_model(self, tg_id: int, model: Type[Chat | User], *, lazy: bool = False) -> Chat | User | None:
         # fixme: sometimes it's kill me
         attrb = 'chats' if issubclass(model, User) else 'users'
         async_session = await self.async_session()
         async with async_session() as session:
-            stmp = select(model).where(model.tg_id == tg_id).options(joinedload(getattr(model, attrb)))
+            stmp = select(model).where(model.tg_id == tg_id)
+            if lazy:
+                stmp = select(model).where(model.tg_id == tg_id).options(joinedload(getattr(model, attrb)))
             result = await session.execute(stmp)
             return result.scalars().first()
 
