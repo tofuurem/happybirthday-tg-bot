@@ -16,6 +16,7 @@ class Cache:
             u: list(await self._tr.get_chats_user(u.id))
             for u in users
         }
+
     async def get_all_users(self) -> Sequence[User]:
         return await self._tr.get_all_users()
 
