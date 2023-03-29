@@ -13,4 +13,4 @@ docker run --network host -d --restart always \
   -e PG_PORT="$PG_PORT" \
   -e PG_HOST="$PG_HOST" \
   --name "$PROJECT_NAME" \
-  -it "$PROJECT_NAME":"$TAG_PROJECT"
+  -it "$PROJECT_NAME":"$1"
