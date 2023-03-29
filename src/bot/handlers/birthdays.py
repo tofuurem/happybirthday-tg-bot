@@ -28,7 +28,7 @@ async def birthdays_handler(
         len(users),
         # -1 because bot not user:/
         await update.effective_chat.get_member_count() - 1,
-        "\n".join(["{0:15s} {1}".format(u.name, u.birthday.strftime('%d.%m')) for u in users])
+        "\n".join(["{0:15s} {1}".format(u.name, u.birthday.strftime('%d.%m')) for u in users if u.birthday])
     )
 
     await context.bot.send_message(
