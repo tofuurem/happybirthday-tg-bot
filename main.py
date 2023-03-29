@@ -21,7 +21,7 @@ class App:
         self._container.wire(
             modules=[
                 sys.modules[__name__],
-                sys.modules["src.bot.handlers.info"],
+                sys.modules["src.bot.handlers.birthdays"],
                 sys.modules["src.bot.handlers.reg"],
                 sys.modules["src.bot.handlers.join_chat"],
                 sys.modules["src.bot.handlers.nearest"],
