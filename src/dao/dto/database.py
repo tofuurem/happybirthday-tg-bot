@@ -1,6 +1,7 @@
+from datetime import date
 from typing import List
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, Date
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -16,7 +17,8 @@ class User(Base):
     first_name: Mapped[str] = mapped_column()
     last_name: Mapped[str] = mapped_column(default='')
     user_name: Mapped[str] = mapped_column(default='')
-    # chats: Mapped[List["Association"]] = relationship("user_chat", primaryjoin="user.id == user_chat.user_id")
+
+    birthday: Mapped[date] = mapped_column(Date)
 
     chats: Mapped[List["Association"]] = relationship(back_populates="user")
 

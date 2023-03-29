@@ -5,8 +5,8 @@ from telegram.ext import ApplicationBuilder, Application
 from src.bot.handlers import get_handlers
 from src.container import Container
 
-from src.bot.tasks import birthday_notify
-from src.bot.time import seconds_first_start
+from src.bot.functions.tasks import birthday_notify
+from src.bot.functions.time import seconds_first_start
 
 
 class App:

@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy.orm import lazyload, joinedload
 
 from src.config import Configuration
-from src.dao.dto.database import Base, User, Chat
+from src.dao.dto.database import Base, User, Chat, Association
 
 
 # 1) бот добавляется в чат -> заполняется чат и пользователи и после саб таблица
@@ -43,8 +43,21 @@ class SQLTransport:
             result = await session.execute(stmp)
             return result.scalars().first()
 
-    async def add_model(self, model: Chat | User) -> None:
+    async def add_model(self, model: Chat | User | Association) -> None:
         async_session = await self.async_session()
         async with async_session() as session:
             session.add(model)
             await session.commit()
+
+    async def is_user_in_room(self, tg_user: int, tg_chat: int) -> bool:
+        async_session = await self.async_session()
+        async with async_session() as session:
+            stmp = (
+                select(Association)
+                .join(User)
+                .join(Chat)
+                .where(User.tg_id == tg_user)
+                .where(Chat.tg_id == tg_chat)
+            )
+            result = await session.execute(stmp)
+            return bool(result.scalars().first())

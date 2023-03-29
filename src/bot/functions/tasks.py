@@ -4,8 +4,7 @@ from telegram.ext import ContextTypes
 from dependency_injector.wiring import Provide
 
 from src.container import Container
-from src.bot.birthday_utils import check_birthday, create_birthday_message
-from src.dao.storage import Cache
+from src.bot.functions.birthday_utils import check_birthday, create_birthday_message
 
 
 async def birthday_notify(
