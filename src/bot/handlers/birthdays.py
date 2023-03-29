@@ -23,12 +23,12 @@ async def birthdays_handler(
     """
 
     await cache.update_if_not_exists(tg_chat=update.effective_chat, tg_user=update.effective_user, lazy=True)
-    users = await cache.users_by_room(update.effective_chat.id)
+    users = [u for u in await cache.users_by_room(update.effective_chat.id) if u.birthday]
     text = "Users with birthdays ({0}/{1}):\n{2}".format(
         len(users),
         # -1 because bot not user:/
         await update.effective_chat.get_member_count() - 1,
-        "\n".join(["{0:15s} {1}".format(u.name, u.birthday.strftime('%d.%m')) for u in users if u.birthday])
+        "\n".join(["{0:15s} {1}".format(u.name, u.birthday.strftime('%d.%m')) for u in users])
     )
 
     await context.bot.send_message(
