@@ -1,92 +1,79 @@
+import random
 import re
-from datetime import datetime
 
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import ContextTypes
 from dependency_injector.wiring import inject, Provide
+from telegram import Update
+from telegram.ext import ContextTypes
 
-from src.bot.time import _to_datetime
+from src.bot.functions.time import to_datetime
 from src.container import Container
-from src.dto.user import User
-from src.storage.cache import Cache
+from src.dao.dto.database import Chat, User, Association
+from src.dao.storage.cache import Cache
+
+answers = [
+    "Знакомые лица:3",
+    "Ооо, кто это тут у нас:3",
+    "Хох, новых друзей решил найти человечешка?",
+    "Знакомые лица:3 Ну вас то я помню",
+    "Ой куда не зайду тебя вижу, хватит так много общаться -_-"
+]
 
 
 @inject
-async def _reg(
+async def reg_handler(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
     cache: Cache = Provide[Container.cache]
 ) -> None:
     """
-    Registration user with Optional argument for birthday
-
-    using:
-        /reg            - save without birthday
-
-        /reg {date_arg: str | optional}
-
-        ### format mm{./-}dd{./-}YYYY
-        /reg 01.01.2001 - save with birthday
-        /reg 01/01/2001 - save with birthday
-        /reg 01-01-2001 - save with birthday
-
-    :param update:
-    :param context:
-    :return:
+        Registration user with Optional argument for birthday
     """
-    key = (update.effective_user.id, update.effective_chat.id)
-    user = await cache.get(key)
-    dt = re.findall(r'\d{2}[./-]\d{2}[./-]\d{4}', context.args[0]) if context.args else None
+    chat = await cache.get_model(update.effective_chat.id, Chat)
+    if not chat:
+        chat = Chat(tg_id=update.effective_chat.id, title=update.effective_chat.title)
+        await cache.add_model(chat)
+    if chat and not chat.title:
+        chat.title = update.effective_chat.title
+        await cache.add_model(chat)
 
-    ny = datetime.now().year
-    # ToDo: refactoring
-    if (context.args and len(context.args) > 1) or \
-        (context.args and not dt) or \
-        (dt and ny - _to_datetime(dt[0]).year < 18):
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text='Уважаемый <i>{}</i> вводите валидный формат данных'.format(
-                update.effective_user.name),
-            parse_mode='HTML'
-        )
-        return
-    if user and update.effective_user.name:
-        user.name = update.effective_user.name
-        await cache.set(user)
-
-    if user and dt and dt != user.birthday:
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text='Вы {0} уверены, что хотите заменить {1} на {2} дату?'.format(
-                user.name,
-                user.birthday.strftime('%d.%m.%Y') if user.birthday else 'None',
-                dt[0]
-            ),
-            reply_markup=InlineKeyboardMarkup(
-                inline_keyboard=[
-                    [
-                        InlineKeyboardButton("Да", callback_data='1'),
-                        InlineKeyboardButton("Нет", callback_data='0')
-                    ]
-                ],
-                one_time_keyboard=True
-            )
-        )
-        context.user_data[key] = _to_datetime(dt[0])
-        return
-    elif user and not dt and user.birthday:
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text='Вы уже зарегистрировались',
-            parse_mode='HTML'
-        )
-        return
-    else:
+    user = await cache.get_model(update.effective_user.id, User)
+    if not user:
         user = User(
             tg_id=update.effective_user.id,
-            group_id=update.effective_chat.id,
-            name=update.effective_user.name,
-            birthday=_to_datetime(dt)
+            first_name=update.effective_user.first_name,
+            last_name=update.effective_user.last_name,
+            user_name=update.effective_user.username,
         )
-        await cache.set(user)
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=user.__str__(), parse_mode='HTML')
+        await cache.add_model(user)
+    else:
+        # update user info
+        user.first_name = update.effective_user.first_name
+        user.last_name = update.effective_user.last_name
+        user.user_name = update.effective_user.username
+        await cache.add_model(user)
+
+    if not await cache.is_user_in_room(update.effective_user.id, update.effective_chat.id):
+        chat_user = Association(user_id=user.id, chat_id=chat.id)
+        await cache.add_model(chat_user)
+
+    if user.birthday:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=random.choice(answers),
+            parse_mode='HTML'
+        )
+
+        return
+
+    dt = re.search(r'\d{2}[./-]\d{2}([./-]\d{4})?', context.args[0]) if context.args else None
+    if dt:
+        dt = to_datetime(dt.group())
+
+    if not dt:
+        # message about sosi hui i delay normalno
+        text = 'Уважаемый <i>{}</i> вводите валидный формат данных'.format(update.effective_user.name),
+    else:
+        text = 'Запомнил и записал:==3'
+        user.birthday = dt
+        await cache.add_model(user)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=text, parse_mode='HTML')

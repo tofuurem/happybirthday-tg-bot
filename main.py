@@ -1,14 +1,13 @@
 import sys
 
-import pytz
-from telegram.constants import ParseMode
-from telegram.ext import ApplicationBuilder, Application, JobQueue, Defaults
+from loguru import logger
+from telegram.ext import ApplicationBuilder, Application
 
-from src.bot.handlers import get_handlers
+from src.bot import get_handlers
 from src.container import Container
 
-from src.bot.tasks import birthday_notify
-from src.bot.time import seconds_first_start
+from src.bot.functions.tasks import birthday_notify
+from src.bot.functions.time import seconds_first_start
 
 
 class App:
@@ -22,31 +21,27 @@ class App:
         self._container.wire(
             modules=[
                 sys.modules[__name__],
-                sys.modules["src.bot.tasks"],
-                sys.modules["src.bot.handlers.fullness"],
-                sys.modules["src.bot.handlers.help"],
-                sys.modules["src.bot.handlers.info"],
+                sys.modules["src.bot.handlers.birthdays"],
                 sys.modules["src.bot.handlers.reg"],
-                sys.modules["src.bot.handlers.sex"],
-                sys.modules["src.bot.handlers.test_try"],
-                sys.modules["src.bot.handlers.callbacks"],
+                sys.modules["src.bot.handlers.join_chat"],
+                sys.modules["src.bot.handlers.nearest"],
+                sys.modules["src.bot.handlers.help"],
             ]
         )
         self._container.init_resources()
 
     def _init_app(self) -> Application:
-        defaults = Defaults(parse_mode=ParseMode.HTML, tzinfo=pytz.timezone('Europe/Moscow'))
-
-        _app = ApplicationBuilder().token(self._container.config().tg_token).defaults(defaults).build()
+        # ToDo: add https://github.com/python-telegram-bot/python-telegram-bot/wiki/Adding-defaults-to-your-bot
+        _app = ApplicationBuilder().token(self._container.config().tg_token).build()
         _app.add_handlers(get_handlers())
-        jq: JobQueue = _app.job_queue
 
-        first = seconds_first_start(timezone=defaults.tzinfo)
+        jq = _app.job_queue
+        first = seconds_first_start()
         _ = jq.run_repeating(birthday_notify, interval=first + 86400, first=first)
-
         return _app
 
     def run(self) -> None:
+        logger.info('start bot')
         self._app.run_polling()
 
 

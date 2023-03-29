@@ -1,0 +1,35 @@
+image: python:3.10.2
+
+variables:
+  PROJECT_NAME: telegram_birthday_bot
+
+stages:
+  - build
+  - deploy
+
+before_script:
+  - export LAST_TAG=$(git tag -l | sort -V | tail -n 1 | sed 's/^v//')
+
+build:
+  stage: build
+  script:
+    - cat $ENV_FILE > .env
+    - docker build -t "$PROJECT_NAME":"$LAST_TAG" .
+  rules:
+    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
+      when: never
+    - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+  tags:
+    - telegram_bot
+
+
+deploy:
+  stage: deploy
+  script:
+    - source ./docker/run.sh
+  tags:
+    - telegram_bot
+  rules:
+    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
+      when: never
+    - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME

@@ -1,14 +1,13 @@
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import Update
 from telegram.ext import ContextTypes
 
 
-async def _help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def help_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = " The following commands are available:\n"
     commands = [
-        ["/reg", "Registration user with Optional argument for birthday,\n{0:15s}like: /reg 01.01.2001".format(' ')],
-        ["/sex", "Choose sex for user"],
-        ["/info", "Returns info about user and their birthdays"],
-        ["/fullness", "Check that count users in chat equals users in cache"],
+        ["/reg", "Update user info about birthday in formats %d.%m.%y or %d.%m"],
+        ["/nearest", "Get nearest 3 birthdays"],
+        ["/birthdays", "Returns info about chat and all users birthdays"],
         ["/help", "Get this message"]
     ]
     for command in commands:
