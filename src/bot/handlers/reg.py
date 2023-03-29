@@ -32,6 +32,9 @@ async def reg_handler(
     if not chat:
         chat = Chat(tg_id=update.effective_chat.id, title=update.effective_chat.title)
         await cache.add_model(chat)
+    if chat and not chat.title:
+        chat.title = update.effective_chat.title
+        await cache.add_model(chat)
 
     user = await cache.get_model(update.effective_user.id, User)
     if not user:
@@ -41,6 +44,12 @@ async def reg_handler(
             last_name=update.effective_user.last_name,
             user_name=update.effective_user.username,
         )
+        await cache.add_model(user)
+    else:
+        # update user info
+        user.first_name = update.effective_user.first_name
+        user.last_name = update.effective_user.last_name
+        user.user_name = update.effective_user.username
         await cache.add_model(user)
 
     if not await cache.is_user_in_room(update.effective_user.id, update.effective_chat.id):
@@ -64,7 +73,7 @@ async def reg_handler(
         # message about sosi hui i delay normalno
         text = 'Уважаемый <i>{}</i> вводите валидный формат данных'.format(update.effective_user.name),
     else:
-        text = 'Запомнил и записал!'
+        text = 'Запомнил и записал:==3'
         user.birthday = dt
         await cache.add_model(user)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=text, parse_mode='HTML')
