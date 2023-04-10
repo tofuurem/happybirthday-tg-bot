@@ -1,7 +1,8 @@
 import sys
 
+import pytz
 from loguru import logger
-from telegram.ext import ApplicationBuilder, Application
+from telegram.ext import ApplicationBuilder, Application, Defaults
 
 from src.bot import get_handlers
 from src.container import Container
@@ -31,13 +32,13 @@ class App:
         self._container.init_resources()
 
     def _init_app(self) -> Application:
-        # ToDo: add https://github.com/python-telegram-bot/python-telegram-bot/wiki/Adding-defaults-to-your-bot
-        _app = ApplicationBuilder().token(self._container.config().tg_token).build()
+        defaults = Defaults(tzinfo=pytz.timezone('Europe/Moscow'))
+        _app = ApplicationBuilder().token(self._container.config().tg_token).defaults(defaults).build()
         _app.add_handlers(get_handlers())
 
         jq = _app.job_queue
         first = seconds_first_start()
-        _ = jq.run_repeating(birthday_notify, interval=first + 86400, first=first)
+        _ = jq.run_repeating(birthday_notify, interval=86400, first=first)
         return _app
 
     def run(self) -> None:
